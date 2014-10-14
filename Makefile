@@ -28,4 +28,3 @@ lint:
 .PHONY: clean
 clean:
 	rm -r dist
-
