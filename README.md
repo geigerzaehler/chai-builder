@@ -1,6 +1,8 @@
 First Class Expectations
 ========================
 
+[![Build Status](https://travis-ci.org/geigerzaehler/chai-builder.svg)](https://travis-ci.org/geigerzaehler/chai-builder)
+
 A [chai][] plugin to separate expectations from the the values they are tested on.
 
 ```javascript
