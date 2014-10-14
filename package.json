@@ -1,0 +1,33 @@
+{
+  "name": "chai-builder",
+  "version": "0.2.0",
+  "description": "First class expressive expectations",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test",
+    "prepublish": "make prepublish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geigerzaehler/chai-builder.git"
+  },
+  "keywords": [
+    "chai",
+    "expectation",
+    "test"
+  ],
+  "author": "Thomas Scholtes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/geigerzaehler/chai-builder/issues"
+  },
+  "homepage": "https://github.com/geigerzaehler/chai-builder",
+  "dependencies": {
+    "chai": "^1.9.2"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.8.0",
+    "coffeelint": "^1.6.0",
+    "mocha": "^1.21.4"
+  }
+}
