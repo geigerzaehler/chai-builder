@@ -1,3 +1,6 @@
+VERSION=$(shell node -e 'console.log(require("./package.json")["version"])')
+
+
 .PHONY: all
 all: index.js
 
@@ -14,17 +17,26 @@ index.js: src/chai-builder.coffee
 test: all lint
 	node_modules/.bin/mocha test
 
-prepublish: all test
-	git tag "v${npm_package_version}"
-
-
-precommit: index.js
-	git add $<
-
 .PHONY: lint
 lint:
 	node_modules/.bin/coffeelint --quiet src test
 
-.PHONY: clean
-clean:
-	rm -r dist
+
+publish: test assert-clean-tree assert-proper-version
+	git tag "v${VERSION}"
+	npm publish
+
+precommit: all
+	git add index.js
+
+
+.PHONY: assert-clean-tree
+assert-clean-tree:
+	@(git diff --exit-code --no-patch \
+    && git diff --cached --exit-code --no-patch) \
+		|| (echo "There are uncommited files" && false)
+
+.PHONY: assert-proper-version
+assert-proper-version:
+	@if echo "${VERSION}" | grep --quiet '.*-dev'; \
+	 then echo "Found development version" && false; fi
