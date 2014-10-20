@@ -1,6 +1,6 @@
 {
   "name": "chai-builder",
-  "version": "0.2.1-dev",
+  "version": "0.2.1",
   "description": "First class expressive expectations",
   "main": "index.js",
   "scripts": {

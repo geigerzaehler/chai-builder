@@ -4,9 +4,12 @@
 
   (function(global, factory) {
     if (typeof module === 'object' && typeof require === 'function') {
-      return module.exports = factory();
+      module.exports = factory();
+    }
+    if (typeof define === 'function' && define.amd) {
+      return define(factory);
     } else {
-      return factory();
+      return global.mochaBuilder = factory();
     }
   })(this, function(chai) {
     var chain, each, use;

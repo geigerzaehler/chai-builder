@@ -1,8 +1,10 @@
 ((global, factory)->
   if typeof module == 'object' && typeof require == 'function'
     module.exports = factory()
+  if typeof define == 'function' && define.amd
+    define(factory)
   else
-    factory()
+    global.mochaBuilder = factory()
 ) this, (chai)->
 
   # Adds the `chai.should` property and registers all chai language
