@@ -83,3 +83,14 @@ describe 'property', ->
     should.have.property('x').not.with.keys('y')
     (it)-> expect(it).to.have.property('x').not.with.keys('y')
   )
+
+
+describe 'length', ->
+  subjects([4, [1], [1,2], ((x)->true), ((x,y)->true)])
+  .compare(
+    should.have.length(1)
+    (it)-> expect(it).to.have.length(1)
+  ).compare(
+    should.not.have.length(1)
+    (it)-> expect(it).not.to.have.length(1)
+  )
