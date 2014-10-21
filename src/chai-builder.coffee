@@ -34,63 +34,61 @@
 
     {Assertion} = chai
 
+
+    class Expectation
+      constructor: ->
+        @label = 'should'
+        @_chain = []
+
+      # Create and run a chai assertion for the target that is
+      # equivalent to the expectation.
+      test: (target)->
+        propertyChain = this._chain.slice()
+        assertion = new Assertion(target)
+        while prop = propertyChain.pop()
+          {name, callArgs} = prop
+          receiver = assertion
+          assertion = assertion[name]
+          if callArgs
+            assertion = assertion.apply(receiver, callArgs)
+
+
     # List of chai language property names
-    chaiProperties = Object.getOwnPropertyNames(Assertion.prototype)
+    assertionKeys = Object.keys(Assertion.prototype)
+    assertionProperties = Object.getOwnPropertyNames(Assertion.prototype)
+    assertionChainableMethods = Object.keys(Assertion.prototype.__methods)
 
-    expectationProto = Object.create(null)
-
-    # Create properties that record the accessed name in the
-    # expectation.
-    each chaiProperties, (name)->
-      Object.defineProperty expectationProto, name, get: chain(name)
-
-    # Create and run a chai assertion for the target that is equivalent
-    # to `expectation`.
-    testExpectation = (target, expectation)->
-      propertyChain = expectation._chain.slice()
-      assertion = new Assertion(target)
-      while prop = propertyChain.pop()
-        {name, callArgs} = prop
-        receiver = assertion
-        assertion = assertion[name]
-        if callArgs
-          assertion = assertion.apply(receiver, callArgs)
+    # Extend the Expectation prototype with chai language properties
+    assertionProperties.forEach (name)->
+      if assertionChainableMethods.indexOf(name) >= 0
+        Object.defineProperty Expectation.prototype, name, get: ->
+          next = (callArgs...)->
+            chainCall(this, name, callArgs)
+          next.__proto__ = chainProperty(this, name)
+          return next
+      else if assertionKeys.indexOf(name) >= 0
+        Expectation.prototype[name] = (callArgs...)->
+          chainCall(this, name, callArgs)
+      else
+        Object.defineProperty Expectation.prototype, name, get: ->
+          chainProperty(this, name)
 
 
-    # Add the `test` method to the `expectation` prototype.
-    expectationProto.test = (target)->
-      testExpectation(target, this)
-
-    chai.should = Object.create(expectationProto)
-    chai.should.label = 'should'
+    chai.should = new Expectation
 
 
-  # Create a getter method that returns a copy of the receiver and adds
-  # its name to the front of the `_chain` property.
-  #
-  #   chain(name).call(obj)._chain[0].name == name
-  #
-  # You can call the returned copy as a method. This will again return
-  # a copy with the arguments of the call recorded.
-  #
-  #   chain(name).call(obj).call(obj, x)._chain[0].callArgs == [x]
-  #
-  chain = (name)-> ->
+    # Utilities
 
-    # The object that the getter returns.
-    #
-    # Must be a function so that we can use it as a method.
-    next = (args...)->
-      next._chain[0].callArgs = args
-      next.label += ' ' + args.join(' ')
+    chainProperty = (base, name)->
+      next = new Expectation
+      next._chain = base._chain.slice()
+      next._chain.unshift({name})
+      next.label = base.label + ' ' + name
       return next
-    next.__proto__ = Object.create(this)
-    next._chain = (this._chain || []).slice()
-    next._chain.unshift({name})
-    next.label += ' ' + name
-    return next
 
-  each = (array, iterator)->
-    iterator(val) for val in array
-
-  return use
+    chainCall = (base, methodName, callArgs)->
+      next = new Expectation
+      next._chain = base._chain.slice()
+      next._chain.unshift({name: methodName, callArgs})
+      next.label = base.label + ' ' + methodName + ' ' + callArgs.join(' ')
+      return next

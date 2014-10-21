@@ -14,11 +14,12 @@ compare = (subject, expectation, tester)->
   catch e
     thrown = e.message
 
-  label = subject + ' ' + expectation.message
   if thrown
-    label = 'fail: ' + label
+    label = 'fail: '
   else
-    label = 'test: ' + label
+    label = 'test: '
+
+  label += subject + ' ' + expectation.label
 
   it label, ->
     if thrown
@@ -84,7 +85,6 @@ describe 'property', ->
     (it)-> expect(it).to.have.property('x').not.with.keys('y')
   )
 
-
 describe 'length', ->
   subjects([4, [1], [1,2], ((x)->true), ((x,y)->true)])
   .compare(
@@ -93,4 +93,10 @@ describe 'length', ->
   ).compare(
     should.not.have.length(1)
     (it)-> expect(it).not.to.have.length(1)
+  ).compare(
+    should.have.length.above(1)
+    (it)-> expect(it).to.have.length.above(1)
+  ).compare(
+    should.not.have.length.above(1)
+    (it)-> expect(it).not.to.have.length.above(1)
   )

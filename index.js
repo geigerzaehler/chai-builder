@@ -12,69 +12,91 @@
       return global.mochaBuilder = factory();
     }
   })(this, function(chai) {
-    var chain, each, use;
-    use = function(chai, utils) {
-      var Assertion, chaiProperties, expectationProto, testExpectation;
+    var use;
+    return use = function(chai, utils) {
+      var Assertion, Expectation, assertionChainableMethods, assertionKeys, assertionProperties, chainCall, chainProperty;
       Assertion = chai.Assertion;
-      chaiProperties = Object.getOwnPropertyNames(Assertion.prototype);
-      expectationProto = Object.create(null);
-      each(chaiProperties, function(name) {
-        return Object.defineProperty(expectationProto, name, {
-          get: chain(name)
-        });
-      });
-      testExpectation = function(target, expectation) {
-        var assertion, callArgs, name, prop, propertyChain, receiver, _results;
-        propertyChain = expectation._chain.slice();
-        assertion = new Assertion(target);
-        _results = [];
-        while (prop = propertyChain.pop()) {
-          name = prop.name, callArgs = prop.callArgs;
-          receiver = assertion;
-          assertion = assertion[name];
-          if (callArgs) {
-            _results.push(assertion = assertion.apply(receiver, callArgs));
-          } else {
-            _results.push(void 0);
-          }
+      Expectation = (function() {
+        function Expectation() {
+          this.label = 'should';
+          this._chain = [];
         }
-        return _results;
-      };
-      expectationProto.test = function(target) {
-        return testExpectation(target, this);
-      };
-      chai.should = Object.create(expectationProto);
-      return chai.should.label = 'should';
-    };
-    chain = function(name) {
-      return function() {
-        var next;
-        next = function() {
-          var args;
-          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          next._chain[0].callArgs = args;
-          next.label += ' ' + args.join(' ');
-          return next;
+
+        Expectation.prototype.test = function(target) {
+          var assertion, callArgs, name, prop, propertyChain, receiver, _results;
+          propertyChain = this._chain.slice();
+          assertion = new Assertion(target);
+          _results = [];
+          while (prop = propertyChain.pop()) {
+            name = prop.name, callArgs = prop.callArgs;
+            receiver = assertion;
+            assertion = assertion[name];
+            if (callArgs) {
+              _results.push(assertion = assertion.apply(receiver, callArgs));
+            } else {
+              _results.push(void 0);
+            }
+          }
+          return _results;
         };
-        next.__proto__ = Object.create(this);
-        next._chain = (this._chain || []).slice();
+
+        return Expectation;
+
+      })();
+      assertionKeys = Object.keys(Assertion.prototype);
+      assertionProperties = Object.getOwnPropertyNames(Assertion.prototype);
+      assertionChainableMethods = Object.keys(Assertion.prototype.__methods);
+      assertionProperties.forEach(function(name) {
+        if (assertionChainableMethods.indexOf(name) >= 0) {
+          return Object.defineProperty(Expectation.prototype, name, {
+            get: function() {
+              var next;
+              next = function() {
+                var callArgs;
+                callArgs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+                return chainCall(this, name, callArgs);
+              };
+              next.__proto__ = chainProperty(this, name);
+              return next;
+            }
+          });
+        } else if (assertionKeys.indexOf(name) >= 0) {
+          return Expectation.prototype[name] = function() {
+            var callArgs;
+            callArgs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+            return chainCall(this, name, callArgs);
+          };
+        } else {
+          return Object.defineProperty(Expectation.prototype, name, {
+            get: function() {
+              return chainProperty(this, name);
+            }
+          });
+        }
+      });
+      chai.should = new Expectation;
+      chainProperty = function(base, name) {
+        var next;
+        next = new Expectation;
+        next._chain = base._chain.slice();
         next._chain.unshift({
           name: name
         });
-        next.label += ' ' + name;
+        next.label = base.label + ' ' + name;
+        return next;
+      };
+      return chainCall = function(base, methodName, callArgs) {
+        var next;
+        next = new Expectation;
+        next._chain = base._chain.slice();
+        next._chain.unshift({
+          name: methodName,
+          callArgs: callArgs
+        });
+        next.label = base.label + ' ' + methodName + ' ' + callArgs.join(' ');
         return next;
       };
     };
-    each = function(array, iterator) {
-      var val, _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = array.length; _i < _len; _i++) {
-        val = array[_i];
-        _results.push(iterator(val));
-      }
-      return _results;
-    };
-    return use;
   });
 
 }).call(this);
