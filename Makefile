@@ -24,6 +24,7 @@ lint:
 
 publish: test assert-clean-tree assert-proper-version
 	git tag "v${VERSION}"
+	git push
 	npm publish
 
 precommit: all

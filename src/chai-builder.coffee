@@ -53,23 +53,24 @@
             assertion = assertion.apply(receiver, callArgs)
 
 
-    # List of chai language property names
-    assertionKeys = Object.keys(Assertion.prototype)
-    assertionProperties = Object.getOwnPropertyNames(Assertion.prototype)
+    assertionPropertyNames = Object.getOwnPropertyNames(Assertion.prototype)
     assertionChainableMethods = Object.keys(Assertion.prototype.__methods)
 
     # Extend the Expectation prototype with chai language properties
-    assertionProperties.forEach (name)->
+    assertionPropertyNames.forEach (name)->
       if assertionChainableMethods.indexOf(name) >= 0
         Object.defineProperty Expectation.prototype, name, get: ->
           next = (callArgs...)->
             chainCall(this, name, callArgs)
           next.__proto__ = chainProperty(this, name)
           return next
-      else if assertionKeys.indexOf(name) >= 0
+        return
+
+      descriptor = Object.getOwnPropertyDescriptor(Assertion.prototype, name)
+      if typeof descriptor.value == 'function'
         Expectation.prototype[name] = (callArgs...)->
           chainCall(this, name, callArgs)
-      else
+      else if typeof descriptor.get == 'function'
         Object.defineProperty Expectation.prototype, name, get: ->
           chainProperty(this, name)
 

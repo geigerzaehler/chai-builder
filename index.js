@@ -14,7 +14,7 @@
   })(this, function(chai) {
     var use;
     return use = function(chai, utils) {
-      var Assertion, Expectation, assertionChainableMethods, assertionKeys, assertionProperties, chainCall, chainProperty;
+      var Assertion, Expectation, assertionChainableMethods, assertionPropertyNames, chainCall, chainProperty;
       Assertion = chai.Assertion;
       Expectation = (function() {
         function Expectation() {
@@ -43,12 +43,12 @@
         return Expectation;
 
       })();
-      assertionKeys = Object.keys(Assertion.prototype);
-      assertionProperties = Object.getOwnPropertyNames(Assertion.prototype);
+      assertionPropertyNames = Object.getOwnPropertyNames(Assertion.prototype);
       assertionChainableMethods = Object.keys(Assertion.prototype.__methods);
-      assertionProperties.forEach(function(name) {
+      assertionPropertyNames.forEach(function(name) {
+        var descriptor;
         if (assertionChainableMethods.indexOf(name) >= 0) {
-          return Object.defineProperty(Expectation.prototype, name, {
+          Object.defineProperty(Expectation.prototype, name, {
             get: function() {
               var next;
               next = function() {
@@ -60,13 +60,16 @@
               return next;
             }
           });
-        } else if (assertionKeys.indexOf(name) >= 0) {
+          return;
+        }
+        descriptor = Object.getOwnPropertyDescriptor(Assertion.prototype, name);
+        if (typeof descriptor.value === 'function') {
           return Expectation.prototype[name] = function() {
             var callArgs;
             callArgs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
             return chainCall(this, name, callArgs);
           };
-        } else {
+        } else if (typeof descriptor.get === 'function') {
           return Object.defineProperty(Expectation.prototype, name, {
             get: function() {
               return chainProperty(this, name);
