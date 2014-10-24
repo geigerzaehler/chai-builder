@@ -78,6 +78,7 @@
         }
       });
       chai.should = new Expectation;
+      chai.Expectation = Expectation;
       chainProperty = function(base, name) {
         var next;
         next = new Expectation;

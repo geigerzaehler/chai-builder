@@ -76,6 +76,7 @@
 
 
     chai.should = new Expectation
+    chai.Expectation = Expectation
 
 
     # Utilities
